@@ -6,7 +6,7 @@ using Daihinmin
 
 function main()
     #クライアント名,アドレス,[ポート]
-    game = entryToGame("allpass","localhost")
+    game = entryToGame("random","localhost")
     #game.infoに場の情報が入っています 詳しくはソース
 
     whole_endflag = false

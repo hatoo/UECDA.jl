@@ -2,7 +2,7 @@ module DAbase
 
 import Base.show , Base.isequal , Base.isless
 
-export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,useJoker
+export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,qty,jokerused,jokeras,cards,Group,Stair,suit,ord,numj,PASS,nojokerord
 
 #下のビットからS3,H3,D3,C3,S4...
 Cards = Uint64
@@ -15,39 +15,70 @@ singlesuit(suit)=filter((x)->suit&(0x1<<x)!=0,[0:3])[1]
 card(ord,suitnum)=1u<<(ord*4+suitnum)
 
 #TODO immutable
-type Hand
-    cards::Cards    #ジョーカー以外のカードの集合
-    qty::Uint8  #カードの枚数
-    seq::Bool   #階段かどうか
-    ord::Uint8  #強さ（通常時で一番弱い 3456789..2） 0から始まる ジョーカー単体は13
-    suit::Uint8 #マーク 1248<->SHDCのビットフラグ
-    Hand(cards,qty,seq,ord,suit)=new(cards,qty,seq,ord,suit)
-    Hand() = new(0u,0,false,0,0)
-    Hand(seq::Bool,ord,qty) = begin
-        #for debug
-        @assert qty<=4
-        this=Hand()
-        this.seq = seq
-        this.ord = ord
-        this.qty = qty
-        if seq
-            this.suit=0x1
-            for i=1:qty
-                this.cards|=card(ord+i-1,0)
-            end
-        else
-            for i=1:qty
-                this.cards|=card(ord,i-1)
-                this.suit |=0x1<<(i-1)
-            end
-        end
-        this
-    end
+type Group
+    suit::Uint8
+    ord::Uint8
+    jokersuit::Uint8
+    Group(s,o)=new(s,o,0x00)
+    Group(s,o,j)=new(s,o,j)
 end
-useJoker(h::Hand)=h.qty!=count(h.cards)
-isequal(x::Hand,y::Hand)=x.seq==y.seq&&x.ord==y.ord&&x.suit==y.suit&&x.qty==y.qty
-isless(x::Hand,y::Hand)=x.seq==y.seq&&x.qty==y.qty&&x.suit==y.suit&&
-    (x.seq?x.ord+x.qty-1<y.ord:x.ord<y.ord)
+const nojokerord=0xff
+type Stair
+    suit::Uint8
+    low::Uint8
+    high::Uint8
+    jokerord::Uint8 #0xffの時だけ特別にジョーカー不使用
+    Stair(s,l,h)=new(s,l,h,nojokerord)
+    Stair(s,l,h,j)=new(s,l,h,j)
+end
+
+typealias Hand Union(Group,Stair)
+
+const PASS = Group(0,0)
+
+suit(g::Group)=g.suit
+suit(s::Stair)=s.suit
+
+ord(g::Group)=g.ord
+ord(s::Stair)=s.low
+
+qty(g::Group) = count(g.suit)
+qty(s::Stair) = s.high-s.low+1
+
+jokerused(g::Group) = g.jokersuit!=0
+jokerused(s::Stair) = s.jokerord!=nojokerord
+
+jokeras(g::Group) = uint64(g.jokersuit)<<(4*g.ord)
+jokeras(s::Stair) = (uint64(s.suit)<<(4*s.jokerord))*(s.jokerord!=nojokerord)
+
+cards(g::Group) = (JOKER*(g.jokersuit!=0))|(uint64(g.suit$g.jokersuit)<<(g.ord*4))
+cards(s::Stair) = (JOKER*(s.jokerord!=nojokerord))|((0x1111111111111111>>(4*s.low)<<(4*s.low)<<(4*(15-s.high))>>(4*(15-s.high)))*s.suit)$
+                    ((s.jokerord!=nojokerord)*(uint64(s.suit)<<(s.jokerord*4)))
+
+isequal(g1::Group,g2::Group) = g1.suit==g2.suit&&g1.ord==g2.ord
+isequal(s1::Stair,s2::Stair) = s1.suit==s2.suit&&s1.low==s2.low&&s1.high==s2.high
+
+isless(g1::Group,g2::Group) = g1.ord<g2.ord
+isless(s1::Stair,s2::Stair) = s1.high<s2.low&&qty(s1)==qty(s2)
+
+function numj(g::Group)
+    ret::Vector{Tuple} = []
+    for i=0:3
+        s = 0x1<<i;
+        if g.suit&s != 0
+            push!(ret,(g.ord*4+i,g.jokersuit&s!=0))
+        end
+    end
+    ret
+end
+
+function numj(s::Stair)
+    ret::Vector{Tuple} = []
+    for o = s.low:s.high
+        push!(ret,(o*4+singlesuit(s.suit),s.jokerord==o))
+    end
+    ret
+end
 
 type FieldInfo
     onset::Bool #場にカードがない場合true
@@ -62,19 +93,9 @@ type FieldInfo
     seat::Vector{Uint8} #席(1-5)->プレイヤー番号(0-4)
     rest::Vector{Uint8} #席->残り枚数
     rank::Vector{Uint8} #席->階級 0->4 小さいほど偉い
-    FieldInfo()=new(true,Hand(),false,false,0,0,0,0,0,zeros(Uint8,5),zeros(Uint8,5),zeros(Uint8,5))
+    FieldInfo()=new(true,Group(0,0),false,false,0,0,0,0,0,zeros(Uint8,5),zeros(Uint8,5),zeros(Uint8,5))
 end
 
-function show(io::IO,hand::Hand)
-    dumpCards(io,hand.cards)
-    if useJoker(hand)
-        print(io,"*JOKER*")
-    end
-    println(io,"")
-    println(io,hand.cards)
-    println(io,"qty=",hand.qty)
-    print(io,hand.seq?"seq ":"pair ",hand.ord," ",hand.suit)
-end
 
 function show(io::IO,info::FieldInfo)
     if info.onset
@@ -88,19 +109,24 @@ function show(io::IO,info::FieldInfo)
     println(io,"goal=",info.goal)
 end
 
-#カードの枚数 原理不明
+function popcnt32(x)
+    x = x - (( x >> 1 ) & 0x55555555)
+    x = (x & 0x33333333) + (( x >> 2) & 0x33333333)
+    x = ( x + ( x >> 4 )) & 0x0F0F0F0F
+    x = x + ( x >> 8 )
+    x = x + ( x >> 16 )
+    x & 0x0000003F
+end
+
 function count(x::Uint64)
-    popcnt32(x)= begin
-        x = x - (( x >> 1 ) & 0x55555555)
-        x = (x & 0x33333333) + (( x >> 2) & 0x33333333)
-        x = ( x + ( x >> 4 )) & 0x0F0F0F0F
-        x = x + ( x >> 8 )
-        x = x + ( x >> 16 )
-        return x & 0x0000003F ###
-    end
     popcnt32(x)+popcnt32(x>>32)
 end
 
+macro memo()
+    arr = [popcnt32(uint32(x)) for x=0:typemax(Uint8)]
+    :($arr)
+end
+count(x::Uint8) = (@memo)[x+1]
 count(x)=count(uint64(x))
 
 dumpCards(cards)=dumpCards(STDOUT,cards)

@@ -40,7 +40,7 @@ function main()
                 #ret::Bool 受理したかどうか。能動的にパスした場合も不受理判定の模様
                 ret = SendHand(game,hand)
                 if !ret&&hand!=PASS
-                    #デバッグ用 公式のJavaのサーバーのみた特定の状況で非受理になる
+                    #デバッグ用 公式のJavaのサーバーのみ特定の状況で非受理になる
                     #Cのサーバーは大丈夫なようなのでバグかもしれない
                     println(tefuda)
                     println(hand)

@@ -36,10 +36,10 @@ function main()
                 try
                 #有効な手の中からランダムで提出する
                 hands = validHands(tefuda,game.info)
-                hand  = length(hands)==0?Hand():hands[rand(1:end)]
+                hand  = length(hands)==0?PASS:hands[rand(1:end)]
                 #ret::Bool 受理したかどうか。能動的にパスした場合も不受理判定の模様
                 ret = SendHand(game,hand)
-                if !ret&&hand!=Hand()
+                if !ret&&hand!=PASS
                     #デバッグ用 公式のJavaのサーバーのみた特定の状況で非受理になる
                     #Cのサーバーは大丈夫なようなのでバグかもしれない
                     println(tefuda)

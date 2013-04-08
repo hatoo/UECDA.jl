@@ -70,25 +70,38 @@ EndGame(game::GameConnection)=close(game.socket)
 
 function HandToTable(game::GameConnection,hand::Hand)
     table = Table()
-    if cards(hand)==JOKER
-        #single JOKER
-        #一番いいジョーカー
-        s = suit(game.info.hand)
-        table[s==0?1:(singlesuit(s)+1),game.info.rev?1:15 ]=2
-        return  table
+    if hand.cards == 0
+        if hand.qty==1 && hand.ord==13
+            #single JOKER
+            #一番いいジョーカー
+            table[singlesuit(game.info.hand.suit)+1,game.info.rev?1:15 ]=2
+            return  table
+        else
+            #pass
+            return table
+        end
     end
-    if cards(hand)==0
-       #pass
-       return table
-    end
-
-    for (n,j) in numj(hand)
-        table[n%4+1,div(n,4)+2]=j?2:1
+    if hand.seq
+        ord = hand.ord
+        const suitnum = singlesuit(hand.suit)
+        for i=1:hand.qty
+            table[suitnum+1,ord+2]=(hand.cards&card(ord,suitnum))==0?2:1
+            ord += 1
+        end
+    else
+        const ord = hand.ord
+        const suit = hand.suit
+        for i=0:3
+            if (suit&(0x1<<i))!=0
+                table[i+1,ord+2]=(hand.cards&card(ord,i))==0?2:1
+            end
+        end
     end
     table
 end
 
 function TableToHand(table)
+    hand = Hand()
     #カードのある位置を探す
     s=1
     n=1
@@ -99,35 +112,39 @@ function TableToHand(table)
             s=1
         end
     end
-    if n==16 return PASS end
+    if n==16 return hand end
     c(n,s) = card(n-2,s-1)
-    isseq = n<15&&(table[s,n+1]!=0)
-    o = n-2
-    if isseq
-        const ss = 0x1<<(s-1)
-        const low = n-2
-        jokerord = nojokerord
-        high = low
-        while (high+2)<=15&&(table[s,high+2]!=0)
-            if table[s,high+2]==2 jokerord=high end
-            high+=1
+    hand.seq = n<15&&(table[s,n+1]!=0)
+    hand.ord = n-2
+    if hand.seq
+        q=0
+        while n<15&&(table[s,n]!=0)
+            if table[s,n]==1
+                hand.cards|=c(n,s)
+            end
+            q+=1
+            n+=1
         end
-        high-=1
-        Stair(ss,low,high,jokerord)
+        hand.qty=q
+        hand.suit = 1u<<(s-1)
     else
-        const o = n-2
-        jokersuit = 0
-        ss=0
-        for i = 0:3
+        q=0
+        for i=0:3
             if table[i+1,n]!=0
-                ss|=(1<<i)
-                if table[i+1,n]==2
-                    jokersuit=1<<i
+                if table[i+1,n]==1
+                    hand.cards|=c(n,i+1)
                 end
+                q+=1
+                hand.suit|=0x1<<i
             end
         end
-        Group(ss,o,jokersuit)
+        hand.qty=q
+        if q==1&&table[s,n]==2
+            hand.cards = 0
+            hand.ord = 13
+        end
     end
+    hand
 end
 
 function SendProfile(socket,myname)

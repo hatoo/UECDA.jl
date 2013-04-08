@@ -45,7 +45,12 @@ function main()
                     println(tefuda)
                     println(hand)
                     println(game.info)
-                    println(UECDA.HandToTable(game,hand))
+                    println("直前に送ったテーブル")
+                    println(lastsend)
+                    println("直前に受信したテーブル")
+                    println(lasttable)
+                    println("直前の場")
+                    println(lastfield)
                     return
                 end
                 #println(ret," ",game.info.onset)

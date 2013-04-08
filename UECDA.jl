@@ -1,6 +1,6 @@
 module UECDA
 
-export entryToGame,StartGame,SendExchangeCards,ReceiveTefuda,SendHand,BeGameEnd,EndGame,Raw
+export entryToGame,StartGame,SendExchangeCards,ReceiveTefuda,SendHand,BeGameEnd,EndGame,lasttable,lastfield,lastsend
 
 require("Daihinmin")
 
@@ -12,6 +12,10 @@ const Hand_Success = 9
 
 #JuliaではCと2次元配列のメモリ配置の見かけが違うが通信時に変換することで普段は公式のドキュメントと違和感なく使えるようにしている
 Table() = zeros(Int32,8,15)
+#最後に受信したテーブル
+global lasttable = Table()
+global lastfield = Table()
+global lastsend  = Table()
 
 type GameConnection
     socket::TcpSocket
@@ -33,6 +37,7 @@ end
 
 function StartGame(game::GameConnection)
     table = ReceiveTable(game.socket)
+    lasttable = table
     (TableToCards(table),table[6,2])
 end
 
@@ -54,6 +59,7 @@ end
 
 function BeGameEnd(game::GameConnection)
     table = ReceiveTable(game.socket)
+    global lastfield = copy(table)
     hand = TableToHand(table)
     if game.info.hand==hand
         game.info.pass |= (0x1<<(game.info.turn-1))
@@ -175,6 +181,7 @@ end
 ntohl = htonl
 
 function SendTable(socket,table)
+    global lastsend = copy(table)
     netdata = transpose(map(htonl,convert(Array{Uint32,2},table)))
     write(socket,netdata)
 end
@@ -184,7 +191,9 @@ function ReceiveTable(socket)
     #start_reading(socket)
     buf = zeros(Uint32,15,8)
     read(socket,buf)
-    transpose(map((x)->convert(Int32,x),map(ntohl,buf)))
+    ret = transpose(map((x)->convert(Int32,x),map(ntohl,buf)))
+    global lasttable = copy(ret)
+    ret
 end
 
 function ReceiveInt(socket)

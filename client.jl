@@ -40,8 +40,9 @@ function main()
                 #ret::Bool 受理したかどうか。能動的にパスした場合も不受理判定の模様
                 ret = SendHand(game,hand)
                 if !ret&&hand!=PASS
-                    #デバッグ用 公式のJavaのサーバーのみ特定の状況で非受理になる
-                    #Cのサーバーは大丈夫なようなのでバグかもしれない
+                    #デバッグ用 公式のJavaのサーバーは縛りがかかった状態でジョーカーを含んだグループを出すと不受理になる模様
+                    #Cのサーバーは革命返しすると不受理になる模様
+                    #現在詳しく調査中
                     println(tefuda)
                     println(hand)
                     println(game.info)

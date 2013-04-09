@@ -2,7 +2,7 @@ module DAbase
 
 import Base.show , Base.isequal , Base.isless
 
-export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,qty,jokerused,jokeras,cards,Group,Stair,suit,ord,numj,PASS,nojokerord
+export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,qty,jokerused,jokeras,cards,Group,Stair,suit,ord,numj,PASS,nojokerord,isrev,isjoker
 
 #下のビットからS3,H3,D3,C3,S4...
 Cards = Uint64
@@ -36,6 +36,8 @@ typealias Hand Union(Group,Stair)
 
 const PASS = Group(0,0)
 
+isjoker(h::Hand)=cards(h)==JOKER
+
 suit(g::Group)=g.suit
 suit(s::Stair)=s.suit
 
@@ -44,6 +46,9 @@ ord(s::Stair)=s.low
 
 qty(g::Group) = count(g.suit)
 qty(s::Stair) = s.high-s.low+1
+
+isrev(g::Group) = qty(g)>=4
+isrev(s::Stair) = qty(s)>=5
 
 jokerused(g::Group) = g.jokersuit!=0
 jokerused(s::Stair) = s.jokerord!=nojokerord

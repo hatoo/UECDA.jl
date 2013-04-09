@@ -3,6 +3,6 @@ module Daihinmin
     require("DAalgorithm")
     using DAbase
     using DAalgorithm
-    export getGroup,getSeq,validHands
+    export getGroup,getStair,validHands
     export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,qty,jokerused,jokeras,cards,Group,Stair,suit,ord,numj,PASS,nojokerord
 end

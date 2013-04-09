@@ -80,15 +80,8 @@ module DAalgorithm
             for low = ordrange
                 Jused = false
                 jo = nojokerord
-                if (cards >> (low*4))&suit == 0
-                    if hasJoker
-                        Jused=true
-                        jo = low
-                    else continue end
-                end
-                #cs = Jused?0u:uint64(suit)<<(low*4)
 
-                for high = (low+1):(ordrange.start+ordrange.len-1)
+                for high = low:(ordrange.start+ordrange.len-1)
                     const len = high-low+1
                     if num!=0 && len>num
                         break
@@ -101,11 +94,9 @@ module DAalgorithm
                             break
                         end
                     end
-                    #if (cards>>(high*4))&suit != 0
-                    #    cs |= uint64(suit)<<(high*4)
-                    #end
+
                     if len >= 3&&(num==0||len==num)
-                        push!(ret,Stair(suit,low,high,jo))#Hand(cs,high-low+1,true,low,suit))
+                        push!(ret,Stair(suit,low,high,jo))
                     end
                 end
             end
@@ -119,4 +110,4 @@ end
 #using DAalgorithm
 #using DAbase
 
-
+require("DAbench")

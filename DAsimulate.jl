@@ -44,21 +44,25 @@ module DAsimulate
     playercards(info)=info.tefuda[info.turn]
 
     function simulate!(info::SimulateInfo,hand::Hand)
+        function renew(info)
+            info.hand = PASS
+            info.lock = false
+            info.pass = info.goal
+        end
+
         if hand == PASS
             info.pass |= (0x1<<(info.turn-1))
-            info.turn = nextturn(info.pass,info.turn)
             if info.pass==0x1f
                 #println("renew")
                 #info.onset = true
-                info.hand = PASS
-                info.lock = false
-                info.pass = info.goal
+                renew(info)
+            else
+                info.turn = nextturn(info.pass,info.turn)
             end
             false
         else
             #info.onset = false
             info.lock = info.lock|(suit(info.hand)==suit(hand))
-            info.hand = hand
             info.rev = info.rev$isrev(hand)
 
             t = info.tefuda[info.turn]$cards(hand)
@@ -68,7 +72,14 @@ module DAsimulate
                 #おわり
                 true
             else
-                info.turn = nextturn(info.pass,info.turn)
+                cs = cards(hand)
+                #ジョーカーに対してのスペ3もしくは8切りの場合強制的に流れる
+                if (cs==S3&&cards(info.hand)==JOKER)|| cs&(uint64(0xf)<<(4*5))!=0
+                    renew(info)
+                else
+                    info.hand = hand
+                    info.turn = nextturn(info.pass,info.turn)
+                end
                 false
             end
         end

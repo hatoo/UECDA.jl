@@ -61,7 +61,6 @@ module DAalgorithm
     function getGroup(cards::Cards,num,locksuit::Uint8,ordrange)
         ret = Hand[]
         const hasJoker = cards&JOKER != 0
-        const mask=0xfu
         const isExist = cardsMask(ordrange)|cards != 0
         const memo = @groupmemo
         if !isExist
@@ -77,7 +76,7 @@ module DAalgorithm
         end
         #singleJoker
         if hasJoker&&contains(ordrange,13)&&(num==1||num==0)
-            push!(ret,Group(1,13,1))#Hand(0,1,false,13,0))
+            push!(ret,Group(1,13,1))
         end
         ret
     end
@@ -121,7 +120,7 @@ end
 
 #for repl
 #require("DAbase")
-using DAalgorithm
+#using DAalgorithm
 #using DAbase
 
 #require("DAbench")

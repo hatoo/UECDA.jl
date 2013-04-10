@@ -11,7 +11,7 @@ const u = convert(Cards,1)
 const JOKER = 1u <<(13*4)
 const S3 = 1u
 
-singlesuit(suit)=filter((x)->suit&(0x1<<x)!=0,[0:3])[1]
+singlesuit(suit::Uint8)=count((~suit) & (suit-1))#filter((x)->suit&(0x1<<x)!=0,[0:3])[1]
 card(ord,suitnum)=1u<<(ord*4+suitnum)
 
 #TODO immutable

@@ -74,7 +74,7 @@ module DAsimulate
             else
                 cs = cards(hand)
                 #ジョーカーに対してのスペ3もしくは8切りの場合強制的に流れる
-                if (cs==S3&&cards(info.hand)==JOKER)|| cs&(uint64(0xf)<<(4*5))!=0
+                if (cs==S3&&cards(info.hand)==JOKER)|| cs&(da"s8 d8 h8 c8")!=0 #uint64(0xf)<<(4*5))!=0
                     renew(info)
                 else
                     info.hand = hand

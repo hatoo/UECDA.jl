@@ -1,4 +1,5 @@
 require("Daihinmin")
+
 using Daihinmin
 
 randCards() = rand(Uint64)&((JOKER<<1)-1)
@@ -20,3 +21,5 @@ function bench2(n)
         end
     end
 end
+
+

@@ -2,7 +2,7 @@ module DAbase
 
 import Base.show , Base.isequal , Base.isless
 
-export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,qty,jokerused,jokeras,cards,Group,Stair,suit,ord,numj,PASS,nojokerord,isrev,isjoker
+export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,qty,jokerused,jokeras,cards,Group,Stair,suit,ord,numj,PASS,nojokerord,isrev,isjoker,@da_str
 
 #下のビットからS3,H3,D3,C3,S4...
 Cards = Uint64
@@ -149,4 +149,18 @@ function dumpCards(io::IO,cards)
     end
 end
 
+macro da_str(str)
+    ret = 0u
+    function f(sstr,nstr)
+        s   = {"S"=>0,"H"=>1,"D"=>2,"C"=>3}[uppercase(sstr)]
+        num = isdigit(nstr[1])?[11,12,0,1,2,3,4,5,6,7,8,9,10][int(nstr)]:{"J"=>8,"Q"=>9,"K"=>10,"A"=>11}[nstr]
+        u<<(num*4+s)
+    end
+    for m in each_match(r"(JOKER)|([SHDC])(10|11|12|13|[0-9JQKA])",uppercase(str))
+        ret |= m.match=="JOKER"?JOKER:f(m.captures[2],m.captures[3])
+    end
+    ret
 end
+
+end
+

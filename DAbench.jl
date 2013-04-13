@@ -4,6 +4,7 @@ using Daihinmin
 
 randCards() = rand(Uint64)&(((JOKER<<1)-1)&(~(0xfu)))
 
+bench()     = bench(validHands)
 bench(f)    = bench(f,20000)
 bench(f,t)  = @time for i=1:t f(randCards()) end
 

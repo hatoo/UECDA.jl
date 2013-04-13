@@ -13,7 +13,7 @@ module DAalgorithm
         else
             const hand = info.hand
             if isa(hand,Stair)
-                getStair(cards,qty(hand),info.lock?suit(hand):0x0,info.rev?(0:max(0,ord(hand)-1)):(min(ord(hand)+qty(hand),13):13))
+                getStair(cards,hand,info.lock,info.rev)
             else
                 if isjoker(hand)
                     if(cards&S3!=0)
@@ -22,14 +22,13 @@ module DAalgorithm
                         []
                     end
                 else
-                   getGroup(cards,qty(hand),info.lock?suit(hand):0x0,info.rev?(0:ord(hand)-1):(ord(hand)+1:13))
+                    getGroup(cards,hand,info.lock,info.rev)
                 end
             end
         end
     end
 
     #ジョーカー無しで構築可能な手にジョーカーを入れ込むような手は生成しない
-    getGroup(cards::Cards) = getGroup(cards,0x0,0x0,0:13)
 
     macro groupmemo()
                                   #mysuit locksuit num joker
@@ -58,10 +57,58 @@ module DAalgorithm
         :($memo)
     end
 
+    function getGroup(cards::Cards)
+        ret = Hand[]
+        const hasJoker = cards&JOKER != 0
+        const memo = @groupmemo
+        for ord = 1:13
+            const mysuit = uint8(cards>>(4*ord))&0x0f
+            for ss = memo[mysuit+1,1,1,1+hasJoker]
+                push!(ret,Group(ss,ord,ss$(mysuit&ss)))
+            end
+        end
+        if hasJoker push!(ret,SingleJoker) end
+        ret
+    end
+
+    function getGroup(cards::Cards,hand::Group,lock::Bool,rev::Bool)
+        ret = Hand[]
+        const hasJoker = cards&JOKER == JOKER
+        const ordrange = rev?(1:hand.ord-1):((hand.ord+1):13)
+        const num = qty(hand)
+
+        #場に出ている枚数が1枚のときは常にジョーカーが出せる
+        if hasJoker&&num==1
+            push!(ret,SingleJoker)
+        end
+
+        const isExist = cardsMask(ordrange)&cards != 0
+        if !isExist
+            return ret
+        end
+
+        const locksuit = lock?suit(hand):0
+
+        const memo = @groupmemo
+        for ord = ordrange
+            mysuit = uint8(cards>>(4*ord))&0x0f
+            for ss = memo[mysuit+1,locksuit+1,num+1,1+hasJoker]
+                push!(ret,Group(ss,ord,ss$(mysuit&ss)))
+            end
+        end
+        ret
+    end
+
     function getGroup(cards::Cards,num,locksuit::Uint8,ordrange)
         ret = Hand[]
         const hasJoker = cards&JOKER != 0
-        const isExist = cardsMask(ordrange)|cards != 0
+        const isExist = cardsMask(ordrange)&cards != 0
+
+        #singleJoker
+        if hasJoker&&contains(ordrange,13)&&(num==1||num==0)
+            push!(ret,Group(1,14,1))
+        end
+
         const memo = @groupmemo
         if !isExist
             return ret
@@ -74,41 +121,30 @@ module DAalgorithm
                 push!(ret,Group(ss,ord,ss$(mysuit&ss)))
             end
         end
-        #singleJoker
-        if hasJoker&&contains(ordrange,13)&&(num==1||num==0)
-            push!(ret,Group(1,14,1))
-        end
+
         ret
     end
 
-    getStair(cards::Cards) = getStair(cards,0,0x0,0:12)
-    function getStair(cards::Cards,num,locksuit::Uint8,ordrange)
+    function getStair(cards::Cards)
         ret = Hand[]
         const hasJoker = cards & JOKER != 0
         cards &= ~JOKER
-        const isExist = cardsMask(ordrange)|cards != 0
-        const mask = 0xfu
-        if !isExist return ret end
-        for suit = locksuit==0?[0x1<<x for x=0:3]:locksuit
-            for low = ordrange
-                Jused = false
-                jo = nojokerord
 
-                for high = low:(ordrange.start+ordrange.len-1)
+        for low = 0:14
+            Jused = !hasJoker
+            jo = nojokerord
+            for suit = [0x1<<x for x=0:3]
+                for high = low:14
                     const len = high-low+1
-                    if num!=0 && len>num
-                        break
-                    end
-                    if (cards>>(high*4))&suit == 0
-                        if hasJoker&&(!Jused)
+                    if (cards>>(4high))&suit == 0
+                        if !Jused
                             Jused=true
-                            jo=high
+                            jo = high
                         else
                             break
                         end
                     end
-
-                    if len >= 3&&(num==0||len==num)
+                    if len >= 3
                         push!(ret,Stair(suit,low,high,jo))
                     end
                 end
@@ -116,6 +152,39 @@ module DAalgorithm
         end
         ret
     end
+
+    function getStair(cards::Cards,hand::Stair,lock::Bool,rev::Bool)
+        ret = Stair[]
+        const hasJoker = cards & JOKER != 0
+        cards &= ~JOKER
+        const ordrange = rev?(0:hand.low-1):(hand.high+1:14)
+        const isExist = cardsMask(ordrange)&cards != 0
+        if !isExist return ret end
+        const num = qty(hand)
+        for suit=lock?hand.suit:[0x1<<x for x=0:3]
+            for low = ordrange
+                Jused = !hasJoker
+                jo = nojokerord
+                for high = low:last(ordrange)
+                    const len = high-low+1
+                    if (cards>>(4high))&suit == 0
+                        if !Jused
+                            Jused = true
+                            jo = high
+                        else
+                            break
+                        end
+                    end
+                    if len == num
+                        push!(ret,Stair(suit,low,high,jo))
+                        break
+                    end
+                end
+            end
+        end
+        ret
+    end
+
 end
 
 #for repl

@@ -91,16 +91,16 @@ module DAsimulate
         else
             const hand = info.hand
             if isa(hand,Stair)
-                getStair(cards,qty(hand),info.lock?suit(hand):0x0,info.rev?(0:max(0,ord(hand)-1)):(min(ord(hand)+qty(hand),13):13))
+                getStair(cards,qty(hand),info.lock?suit(hand):0x0,info.rev?(0:max(0,ord(hand)-1)):(min(ord(hand)+qty(hand),14):14))
             else
                 if isjoker(hand)
                     if(cards&S3!=0)
-                        [Group(1,0)]
+                        [Group(1,1)]
                     else
                         []
                     end
                 else
-                   getGroup(cards,qty(hand),info.lock?suit(hand):0x0,info.rev?(0:ord(hand)-1):(ord(hand)+1:13))
+                   getGroup(cards,qty(hand),info.lock?suit(hand):0x0,info.rev?(0:ord(hand)-1):(ord(hand)+1:14))
                 end
             end
         end
@@ -111,7 +111,7 @@ module DAsimulate
         yama = shuffle!([0:52])
         p = 1
         for t in yama
-            ret[p]|=(1u<<t)
+            ret[p]|=(1u<<t<<4)
             p=p%5+1
         end
         ret

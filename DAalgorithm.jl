@@ -17,7 +17,7 @@ module DAalgorithm
             else
                 if isjoker(hand)
                     if(cards&S3!=0)
-                        [Group(1,0)]
+                        [Group(1,1)]
                     else
                         []
                     end
@@ -67,7 +67,7 @@ module DAalgorithm
             return ret
         end
 
-        ordrange2 = contains(ordrange,13)?(ordrange.start:12):ordrange
+        ordrange2 = contains(ordrange,14)?(ordrange.start:13):ordrange
         for ord=ordrange2
             mysuit = uint8(cards>>(4*ord))&0x0f
             for ss = memo[mysuit+1,locksuit+1,num+1,1+hasJoker]
@@ -76,7 +76,7 @@ module DAalgorithm
         end
         #singleJoker
         if hasJoker&&contains(ordrange,13)&&(num==1||num==0)
-            push!(ret,Group(1,13,1))
+            push!(ret,Group(1,14,1))
         end
         ret
     end

@@ -2,7 +2,7 @@ require("Daihinmin")
 
 using Daihinmin
 
-randCards() = rand(Uint64)&((JOKER<<1)-1)
+randCards() = rand(Uint64)&(((JOKER<<1)-1)&(~(0xfu)))
 
 bench(f)    = bench(f,20000)
 bench(f,t)  = @time for i=1:t f(randCards()) end
@@ -22,4 +22,17 @@ function bench2(n)
     end
 end
 
+
+function test(n)
+    function takerandom(info)
+        hs = validHands(playercards(info),info)
+        hs==[]?PASS:hs[rand(1:end)]
+    end
+
+    info = rand(SimulateInfo)
+    for i=1:n
+        simulate!(info,takerandom(info))
+    end
+    info
+end
 

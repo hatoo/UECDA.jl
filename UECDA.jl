@@ -83,13 +83,13 @@ function HandToTable(game::GameConnection,hand::Hand)
         table[s==0?1:(singlesuit(s)+1),game.info.rev?1:15 ]=2
         return  table
     end
-    if cards(hand)==0
+    if hand == PASS
        #pass
        return table
     end
 
     for (n,j) in numj(hand)
-        table[n%4+1,div(n,4)+2]=j?2:1
+        table[n%4+1,div(n,4)+1]=j?2:1
     end
     table
 end
@@ -108,20 +108,19 @@ function TableToHand(table)
     if n==16 return PASS end
     c(n,s) = card(n-2,s-1)
     isseq = n<15&&(table[s,n+1]!=0)
-    o = n-2
     if isseq
         const ss = 0x1<<(s-1)
-        const low = n-2
+        const low = n-1
         jokerord = nojokerord
         high = low
-        while (high+2)<=15&&(table[s,high+2]!=0)
-            if table[s,high+2]==2 jokerord=high end
+        while (high+1)<=15&&(table[s,high+1]!=0)
+            if table[s,high+1]==2 jokerord=high end
             high+=1
         end
         high-=1
         Stair(ss,low,high,jokerord)
     else
-        const o = n-2
+        const o = n-1
         jokersuit = 0
         ss=0
         for i = 0:3
@@ -156,7 +155,7 @@ function CardsToTable(cards::Cards)
     for i=0:51
         if (1u<<i)&cards != 0
             suit = i%4
-            num  = div(i,4)+1
+            num  = div(i,4)
             table[suit+1,num+1] = 1
         end
     end
@@ -204,8 +203,8 @@ end
 function TableToCards(table)
     cards = 0u
     for suit=0:3
-        for num = 0:12
-            if table[suit+1,num+2]==1
+        for num = 1:13
+            if table[suit+1,num+1]==1
                 cards = cards | (1u<<(4num+suit))
             end
         end

@@ -2,14 +2,15 @@ module DAbase
 
 import Base.show , Base.isequal , Base.isless
 
-export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,qty,jokerused,jokeras,cards,Group,Stair,suit,ord,numj,PASS,nojokerord,isrev,isjoker,@da_str
+export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,qty,jokerused,jokeras,cards,Group,Stair,suit,ord,numj,PASS,nojokerord,isrev,isjoker,@da_str,Pass
 
-#下のビットからS3,H3,D3,C3,S4...
+#0x10のビットからS3,H3,D3,C3,S4...
+#0x0~0xfは革命時のジョーカーを表現するのに使う
 Cards = Uint64
 
 const u = convert(Cards,1)
-const JOKER = 1u <<(13*4)
-const S3 = 1u
+const JOKER = 1u <<(14*4)
+const S3 = u<<4
 
 singlesuit(suit::Uint8)=count((~suit) & (suit-1))#filter((x)->suit&(0x1<<x)!=0,[0:3])[1]
 card(ord,suitnum)=1u<<(ord*4+suitnum)
@@ -17,7 +18,7 @@ card(ord,suitnum)=1u<<(ord*4+suitnum)
 #TODO immutable
 type Group
     suit::Uint8
-    ord::Uint8
+    ord::Uint8 #0=革命時のジョーカー 1=3 3456... 通常時のジョーカー=14
     jokersuit::Uint8
     Group(s,o)=new(s,o,0x00)
     Group(s,o,j)=new(s,o,j)
@@ -32,14 +33,18 @@ type Stair
     Stair(s,l,h,j)=new(s,l,h,j)
 end
 
-typealias Hand Union(Group,Stair)
+type Pass
+end
 
-const PASS = Group(0,0)
+typealias Hand Union(Group,Stair,Pass)
+
+const PASS = Pass()
 
 isjoker(h::Hand)=cards(h)==JOKER
 
 suit(g::Group)=g.suit
 suit(s::Stair)=s.suit
+suit(p::Pass) =0x00
 
 ord(g::Group)=g.ord
 ord(s::Stair)=s.low
@@ -59,6 +64,7 @@ jokeras(s::Stair) = (uint64(s.suit)<<(4*s.jokerord))*(s.jokerord!=nojokerord)
 cards(g::Group) = (JOKER*(g.jokersuit!=0))|(uint64(g.suit$g.jokersuit)<<(g.ord*4))
 cards(s::Stair) = (JOKER*(s.jokerord!=nojokerord))|((0x1111111111111111>>(4*s.low)<<(4*s.low)<<(4*(15-s.high))>>(4*(15-s.high)))*s.suit)$
                     ((s.jokerord!=nojokerord)*(uint64(s.suit)<<(s.jokerord*4)))
+cards(p::Pass)   = 0u
 
 isequal(g1::Group,g2::Group) = g1.suit==g2.suit&&g1.ord==g2.ord
 isequal(s1::Stair,s2::Stair) = s1.suit==s2.suit&&s1.low==s2.low&&s1.high==s2.high
@@ -84,6 +90,8 @@ function numj(s::Stair)
     end
     ret
 end
+
+numj(p::Pass) = []
 
 type FieldInfo
     onset::Bool #場にカードがない場合true
@@ -153,7 +161,7 @@ macro da_str(str)
     ret = 0u
     function f(sstr,nstr)
         s   = {"S"=>0,"H"=>1,"D"=>2,"C"=>3}[uppercase(sstr)]
-        num = isdigit(nstr[1])?[11,12,0,1,2,3,4,5,6,7,8,9,10][int(nstr)]:{"J"=>8,"Q"=>9,"K"=>10,"A"=>11}[nstr]
+        num = isdigit(nstr[1])?[12,13,1,2,3,4,5,6,7,8,9,10,11][int(nstr)]:{"J"=>9,"Q"=>10,"K"=>11,"A"=>12}[nstr]
         u<<(num*4+s)
     end
     for m in each_match(r"(JOKER)|([SHDC])(10|11|12|13|[0-9JQKA])",uppercase(str))

@@ -53,18 +53,19 @@ function montecarloP(info::SimulateInfo,num)
     next() = pick1(arr,n)
     cpy()  = deepcopy(info)
     put(r,v) = pushscore!(r,v)
-    inc() = (i=n;n+=1;i)
+    inc() = (q=next();i=n;n+=1;(i,q))
+    f(x) = playout!(deepcopy(info),x)
     @sync begin
         for p=1:np
             if p!=myid() || np==1
-                @spawnat myid() begin
+                @async begin
                     while true
-                        r = next()
-                        c = cpy()
-                        rank = remote_call_fetch(p,(x)->playout!(c,x),r.data)
-                        put(r,[0.98,0.88,0.5,0.11,0.017][rank])
-                        i = inc()
+                        #r = next()
+                        i,r = inc()
                         if i>num break end
+                        rank = remote_call_fetch(p,f,r.data)
+                        #put(r,[0.98,0.88,0.5,0.11,0.017][rank])
+                        pushscore!(r,[0.98,0.88,0.5,0.11,0.017][rank])
                     end
                 end
             end

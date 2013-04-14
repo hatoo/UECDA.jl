@@ -24,10 +24,19 @@ function bench2(n)
     end
 end
 
+bench3()=bench3(5000)
 function bench3(n)
     @time begin
         info = rand(SimulateInfo)
         montecarlo(info,n)
+    end
+end
+
+bench4()=bench4(5000)
+function bench4(n)
+    @time begin
+        info = rand(SimulateInfo)
+        montecarloP(info,n)
     end
 end
 

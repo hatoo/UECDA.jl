@@ -3,6 +3,7 @@ require("Daihinmin")
 
 using UECDA
 using Daihinmin
+using DAmc
 
 function main()
     #クライアント名,アドレス,[ポート]
@@ -11,6 +12,7 @@ function main()
 
     whole_endflag = false
     while !whole_endflag
+        rest = (JOKER<<1-1)$0xf
         #交換前の手札と交換する枚数(自分が富豪大富豪の場合1,2)
         cards,num = StartGame(game)
         if num != 0
@@ -29,14 +31,15 @@ function main()
         endflag = false
         while !endflag
             tefuda,ismyturn = ReceiveTefuda(game)
-
+            #println("rest=",rest)
             #自分のターンの場合、手を提出する
             if ismyturn
                 #println(tefuda)
                 try
                 #有効な手の中からランダムで提出する
                 hands = validHands(tefuda,game.info)
-                hand  = length(hands)==0?PASS:hands[rand(1:end)]
+                #hand  = length(hands)==0?PASS:hands[rand(1:end)]
+                hand  = length(hands)==0?PASS:montecarlo(game.info,tefuda,rest,2000)
                 #ret::Bool 受理したかどうか。能動的にパスした場合も不受理判定の模様
                 ret = SendHand(game,hand)
                 if !ret&&hand!=PASS
@@ -61,6 +64,7 @@ function main()
                 end
             end
             status = BeGameEnd(game)
+            rest&=~Daihinmin.cards(game.info.hand)
             #statuc==0 ゲーム中 ==1ゲーム一回終わり ==2全部のゲーム終わり
             endflag = status>0
             whole_endflag = status>1

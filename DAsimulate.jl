@@ -16,8 +16,32 @@ module DAsimulate
         pass::Uint8
         goal::Uint8
         tefuda::Vector{Cards}
-        #SimulateInfo(info::Fieldinfo) = new
         #SimulateInfo() =
+    end
+
+    function SimulateInfo(info::FieldInfo,mycards::Cards,rest::Cards)
+        tefuda = Cards[]
+        cs = Int[]
+        rest&= ~mycards
+        for i=0:60
+            if (rest>>i)&0x1 != 0
+                push!(cs,i)
+            end
+        end
+        shuffle!(cs)
+        for i=1:5
+            t=0u
+            if i==info.turn
+                push!(tefuda,0u)
+                continue
+            end
+            for k=1:info.rest[i]
+                t|=1u<<pop!(cs)
+            end
+            push!(tefuda,t)
+        end
+        tefuda[info.turn] = mycards
+        SimulateInfo(info.onset?PASS:info.hand,info.lock,info.rev,info.turn,info.pass,info.goal,tefuda)
     end
 
     macro nextturn_memo()

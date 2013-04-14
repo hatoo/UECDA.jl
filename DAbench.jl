@@ -1,6 +1,7 @@
 require("Daihinmin")
 
 using Daihinmin
+using DAmc
 
 randCards() = rand(Uint64)&(((JOKER<<1)-1)&(~(0xfu)))
 
@@ -20,6 +21,13 @@ function bench2(n)
         info = rand(SimulateInfo)
         while !(simulate!(info,takerandom(info))) end
         end
+    end
+end
+
+function bench3(n)
+    @time begin
+        info = rand(SimulateInfo)
+        montecarlo(info,n)
     end
 end
 

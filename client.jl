@@ -1,6 +1,3 @@
-require("UECDA")
-require("Daihinmin")
-
 using UECDA
 using Daihinmin
 using DAmc

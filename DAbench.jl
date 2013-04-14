@@ -1,5 +1,3 @@
-require("Daihinmin")
-
 using Daihinmin
 using DAmc
 

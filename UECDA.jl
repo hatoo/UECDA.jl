@@ -2,8 +2,6 @@ module UECDA
 
 export entryToGame,StartGame,SendExchangeCards,ReceiveTefuda,SendHand,BeGameEnd,EndGame,lasttable,lastfield,lastsend
 
-require("Daihinmin")
-
 using Daihinmin
 
 const protocol_ver = 20070

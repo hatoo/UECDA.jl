@@ -1,5 +1,4 @@
 module DAalgorithm
-    require("DAbase")
     using DAbase
     export getGroup,getStair,validHands
 

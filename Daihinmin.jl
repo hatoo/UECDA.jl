@@ -1,7 +1,4 @@
 module Daihinmin
-    require("DAbase")
-    require("DAalgorithm")
-    require("DAsimulate")
     using DAbase
     using DAalgorithm
     using DAsimulate

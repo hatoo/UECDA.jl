@@ -1,6 +1,4 @@
 module DAsimulate
-    require("DAbase")
-    require("DAalgorithm")
     using DAbase
     using DAalgorithm
 

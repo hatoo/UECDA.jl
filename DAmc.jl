@@ -46,26 +46,43 @@ function montecarloP(info::FieldInfo,mycards,rest,num)
     montecarloP(sinfo,num)
 end
 function montecarloP(info::SimulateInfo,num)
+    const N = 4
+
     arr = [ucb1record{Hand}(x) for x=[validHands(playercards(info),info),(isonset(info)?[]:PASS)]]
     const np = nprocs()
     targetseat = info.turn
     n=0
     next() = pick1(arr,n)
     cpy()  = deepcopy(info)
-    put(r,v) = pushscore!(r,v)
-    inc() = (q=next();i=n;n+=1;(i,q))
+    put(r,v) = (n+=1;pushscore!(r,v))
+    get() = (n,next())
     f(x) = playout!(deepcopy(info),x)
+    function fN(x)
+        ret = cell(N)
+        for i=1:N
+            rank = f(x)
+            ret[i] = rank
+        end
+        ret
+    end
+
     @sync begin
         for p=1:np
             if p!=myid() || np==1
                 @async begin
+                    #println("spawn:",p)
                     while true
                         #r = next()
-                        i,r = inc()
+                        i,r = get()
                         if i>num break end
-                        rank = remote_call_fetch(p,f,r.data)
+                        #rank = remote_call_fetch(p,f,r.data)
+                        ranks = remote_call_fetch(p,fN,r.data)
+                        #println("consume playout at ",p," ",time())
                         #put(r,[0.98,0.88,0.5,0.11,0.017][rank])
-                        pushscore!(r,[0.98,0.88,0.5,0.11,0.017][rank])
+                        #pushscore!(r,[0.98,0.88,0.5,0.11,0.017][rank])
+                        for k=1:N
+                            put(r,[0.98,0.88,0.5,0.11,0.017][ranks[k]])
+                        end
                     end
                 end
             end

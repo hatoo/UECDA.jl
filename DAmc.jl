@@ -81,7 +81,7 @@ function montecarloP(info::SimulateInfo,num)
                         #put(r,[0.98,0.88,0.5,0.11,0.017][rank])
                         #pushscore!(r,[0.98,0.88,0.5,0.11,0.017][rank])
                         for k=1:N
-                            put(r,[0.98,0.88,0.5,0.11,0.017][ranks[k]])
+                            put(r,[1.0,0.88,0.5,0.11,0.0][ranks[k]])
                         end
                     end
                 end

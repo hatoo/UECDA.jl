@@ -11,9 +11,11 @@ function pickrandom(info)
     hs==[]?PASS:hs[rand(1:end)]
 end
 
-function playout!(info::SimulateInfo)
+function playout!(info::SimulateInfo,hand::Hand)
     const targetseat = info.turn
     const targetflag = 0x1 << (targetseat-1)
+    #まず一手
+    simulate!(info,hand)
     while info.goal&targetflag == 0
         simulate!(info,pickrandom(info))
     end
@@ -32,8 +34,7 @@ function montecarlo(info::SimulateInfo,num)
     for i=1:num
         copy = deepcopy(info)
         r = pick1(arr,n)
-        simulate!(copy,r.data)
-        rank = playout!(copy)
+        rank = playout!(copy,r.data)
         pushscore!(r,[0.98,0.88,0.5,0.11,0.017][rank])
         n+=1
     end

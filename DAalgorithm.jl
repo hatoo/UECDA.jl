@@ -1,6 +1,6 @@
 module DAalgorithm
     using DAbase
-    export getGroup,getStair,validHands
+    export getGroup,getStair,validHands,onsetHands
 
 
     cardsMask(range) = ((1u<<range.len*4)-1)<<(4*range.start)
@@ -52,6 +52,24 @@ module DAalgorithm
                     memo[s+1,lock+1,num+1,2] = arrj
                 end
             end
+        end
+        :($memo)
+    end
+
+    macro groupmemo_onset()
+        memo = Array(Vector{Uint8},16)
+        for s = 0:15
+            arr = Uint[]
+            if s == 0
+                memo[s+1]=arr
+                continue
+            end
+            for i = 1:15
+                if (s==i)||(count(i)>1&&count(i&s$i)<=1)
+                    push!(arr,i)
+                end
+            end
+            memo[s+1]=arr
         end
         :($memo)
     end
@@ -124,6 +142,29 @@ module DAalgorithm
         ret
     end
 
+    function getGroup_onset(cards::Cards)
+        ret = Hand[]
+        memo = @groupmemo_onset
+        const hasJoker = cards & JOKER != 0
+        if hasJoker
+            for ord = 1:13
+                s = (cards>>4ord)&0xf
+                for ss = memo[s+1]
+                    push!(ret,Group(ss,ord,ss$(s&ss)))
+                end
+            end
+            push!(ret,SingleJoker)
+        else
+            for ord = 1:13
+                s = (cards>>4ord)&0xf
+                if s!=0
+                    push!(ret,Group(s,ord))
+                end
+            end
+        end
+        ret
+    end
+
     function getStair(cards::Cards)
         ret = Hand[]
         const hasJoker = cards & JOKER != 0
@@ -182,6 +223,10 @@ module DAalgorithm
             end
         end
         ret
+    end
+
+    function onsetHands(cards::Cards)
+        [getGroup_onset(cards),getStair(cards)]
     end
 
 end

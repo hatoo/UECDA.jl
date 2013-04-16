@@ -6,18 +6,25 @@ using UCB1
 
 export montecarlo,montecarloP
 
-function pickrandom(info)
+function pickrandom(info)#,cache)
     hs = validHands(playercards(info),info)
+    #hs = isonset(info)?cache[info.turn]:validHands(cache[info.turn],info.hand,info.lock,info.rev)
     hs==[]?PASS:hs[rand(1:end)]
 end
 
 function playout!(info::SimulateInfo,hand::Hand)
     const targetseat = info.turn
     const targetflag = 0x1 << (targetseat-1)
+
     #まず一手
     simulate!(info,hand)
+    #cache = [validHands(t) for t=info.tefuda]
     while info.goal&targetflag == 0
-        simulate!(info,pickrandom(info))
+        h = pickrandom(info)#,cache)
+        #if h!=PASS
+        #    cache[info.turn] = filterHands(cache[info.turn],h,info.tefuda[info.turn]&JOKER!=0)
+        #end
+        simulate!(info,h)
     end
     count(info.goal)
 end

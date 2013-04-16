@@ -1,6 +1,6 @@
 module DAalgorithm
     using DAbase
-    export getGroup,getStair,validHands,onsetHands
+    export getGroup,getStair,validHands,onsetHands,filterHands
 
 
     cardsMask(range) = ((1u<<range.len*4)-1)<<(4*range.start)
@@ -233,6 +233,33 @@ module DAalgorithm
         [getGroup_onset(cards),getStair(cards)]
     end
 
+    function filterHands(hands::Vector{Hand},h::Hand,hasJoker::Bool)
+        const c1 = cards(h)
+        if hasJoker && (c1&JOKER==0)
+            ret = Hand[]
+            for x = hands
+                c2 = cards(x)
+                t = c1 & c2
+                if t==0
+                    push!(ret,x)
+                elseif c2&JOKER==0 && count(t)==1
+                    n = lowestcard(t)
+                    f(g::Group)=Group(g.suit,g.ord,0x1<<(n%4))
+                    f(s::Stair)=Stair(s.suit,s.low,s.high,div(n,4))
+                    push!(ret,f(x))
+                end
+            end
+            ret
+        else
+            p(x)=c1&cards(x)==0
+            filter(p,hands)
+        end
+    end
+
+    function validHands(hands::Vector{Hand},h::Hand,lock::Bool,rev::Bool)
+        p(x) = (typeof(x)==typeof(h) && (!lock||suit(x)==suit(h)) && qty(x)==qty(h) && (rev$(x>h)))||(h==SingleJoker&&x==Group(1,1))
+        filter(p,hands)
+    end
 end
 
 #for repl

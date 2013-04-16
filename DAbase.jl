@@ -2,7 +2,7 @@ module DAbase
 
 import Base.show , Base.isequal , Base.isless
 
-export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,qty,jokerused,jokeras,cards,Group,Stair,suit,ord,numj,PASS,nojokerord,isrev,isjoker,@da_str,Pass,SingleJoker
+export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,qty,jokerused,jokeras,cards,Group,Stair,suit,ord,numj,PASS,nojokerord,isrev,isjoker,@da_str,Pass,SingleJoker,lowestcard
 
 #0x10のビットからS3,H3,D3,C3,S4...
 #0x0~0xfは革命時のジョーカーを表現するのに使う
@@ -12,7 +12,8 @@ const u = convert(Cards,1)
 const JOKER = 1u <<(14*4)
 const S3 = u<<4
 
-singlesuit(suit::Uint8)=count((~suit) & (suit-1))#filter((x)->suit&(0x1<<x)!=0,[0:3])[1]
+singlesuit(suit::Uint8)=count((~suit) & (suit-1))
+lowestcard(card::Cards)=count((~card) & (card-1))
 card(ord,suitnum)=1u<<(ord*4+suitnum)
 
 #TODO immutable

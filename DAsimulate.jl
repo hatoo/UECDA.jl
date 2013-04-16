@@ -116,26 +116,7 @@ module DAsimulate
     end
 
     function validHands(cards::Cards,info::SimulateInfo)
-        if isonset(info)
-            validHands(cards)
-        else
-            const hand = info.hand
-            if isa(hand,Stair)
-                #getStair(cards,qty(hand),info.lock?suit(hand):0x0,info.rev?(0:max(0,ord(hand)-1)):(min(ord(hand)+qty(hand),14):14))
-                getStair(cards,hand,info.lock,info.rev)
-            else
-                if isjoker(hand)
-                    if(cards&S3!=0)
-                        [Group(1,1)]
-                    else
-                        []
-                    end
-                else
-                   #getGroup(cards,qty(hand),info.lock?suit(hand):0x0,info.rev?(0:ord(hand)-1):(ord(hand)+1:14))
-                   getGroup(cards,hand,info.lock,info.rev)
-                end
-            end
-        end
+        validHands(cards,info.hand,info.lock,info.rev)
     end
 
     function randtefuda()

@@ -6,24 +6,28 @@ module DAalgorithm
     cardsMask(range) = ((1u<<range.len*4)-1)<<(4*range.start)
 
     validHands(cards::Cards) = [getGroup(cards),getStair(cards)]
+    validHands(cards::Cards,hand::Pass,lock::Bool,rev::Bool) = validHands(cards)
+    function validHands(cards::Cards,hand::Group,lock::Bool,rev::Bool)
+        if isjoker(hand)
+            if(cards&S3!=0)
+                [Group(1,1)]
+            else
+                []
+            end
+        else
+            getGroup(cards,hand,lock,rev)
+        end
+    end
+
+    function validHands(cards::Cards,hand::Stair,lock::Bool,rev::Bool)
+        getStair(cards,hand,lock,rev)
+    end
+
     function validHands(cards::Cards,info::FieldInfo)
         if info.onset
             validHands(cards)
         else
-            const hand = info.hand
-            if isa(hand,Stair)
-                getStair(cards,hand,info.lock,info.rev)
-            else
-                if isjoker(hand)
-                    if(cards&S3!=0)
-                        [Group(1,1)]
-                    else
-                        []
-                    end
-                else
-                    getGroup(cards,hand,info.lock,info.rev)
-                end
-            end
+            validHands(cards,info.hand,info.lock,info.rev)
         end
     end
 

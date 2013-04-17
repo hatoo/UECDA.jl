@@ -22,19 +22,43 @@ function bench2(n)
     end
 end
 
+
+function testFieldInfo()
+    info = FieldInfo()
+    info.mypos = 1
+    info.turn = 1
+    info.seat = [0:4]
+    info.rest = [11,11,11,10,10]
+    info.rank = [0:4]
+    info
+end
+
+function randmycards()
+    yama = shuffle!([0:52])
+    t = 0u
+    p = 1
+    for i=1:11
+        t |= 1u<<yama[i]<<4
+    end
+    (t,(JOKER<<1-1)&(~t)&(~(0xfu)))
+end
+
+
 bench3()=bench3(5000)
 function bench3(n)
+    info = testFieldInfo()
+    mycards,rest = randmycards()
     @time begin
-        info = rand(SimulateInfo)
-        montecarlo(info,n)
+        montecarlo(info,mycards,rest,n)
     end
 end
 
 bench4()=bench4(5000)
 function bench4(n)
+    info = testFieldInfo()
+    mycards,rest = randmycards()
     @time begin
-        info = rand(SimulateInfo)
-        montecarloP(info,n)
+        montecarloP(info,mycards,rest,n)
     end
 end
 

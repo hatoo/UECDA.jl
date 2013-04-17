@@ -108,9 +108,8 @@ type FieldInfo
     seat::Vector{Uint8} #席(1-5)->プレイヤー番号(0-4)
     rest::Vector{Uint8} #席->残り枚数
     rank::Vector{Uint8} #席->階級 0->4 小さいほど偉い
-    FieldInfo()=new(true,Group(0,0),false,false,0,0,0,0,0,zeros(Uint8,5),zeros(Uint8,5),zeros(Uint8,5))
+    FieldInfo()=new(true,PASS,false,false,0,0,0,0,0,zeros(Uint8,5),zeros(Uint8,5),zeros(Uint8,5))
 end
-
 
 function show(io::IO,info::FieldInfo)
     if info.onset

@@ -35,8 +35,8 @@ function montecarlo(info::FieldInfo,mycards,rest,num)
     targetseat = info.turn
     n = 0
     for i=1:num
-        sinfo = SimulateInfo(info,mycards,rest)
         r = pick1(arr,n)
+        sinfo = SimulateInfo(info,mycards,rest)
         rank = playout!(sinfo,r.data)
         pushscore!(r,[0.98,0.88,0.5,0.11,0.017][rank])
         n+=1

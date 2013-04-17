@@ -62,6 +62,17 @@ function bench4(n)
     end
 end
 
+bench5()=bench5(5000)
+function bench5(n)
+    info = testFieldInfo()
+    mycards,rest = randmycards()
+    @time begin
+    for i=1:n
+        sinfo = SimulateInfo(info,mycards,rest)
+    end
+    end
+end
+
 
 function test(n)
     function takerandom(info)

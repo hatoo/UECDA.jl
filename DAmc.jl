@@ -52,10 +52,9 @@ function montecarloP(finfo::FieldInfo,mycards,rest,num)
     targetseat = finfo.turn
     n=0
     next() = pick1(arr,n)
-    getinfo()  = SimulateInfo(finfo,mycards,rest)
     put(r,v) = (n+=1;pushscore!(r,v))
     get() = (n,next())
-    f(x) = playout!(getinfo(),x)
+    f(x) = playout!(SimulateInfo(finfo,mycards,rest),x)
     function fN(x)
         ret = cell(N)
         for i=1:N

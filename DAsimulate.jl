@@ -7,7 +7,6 @@ module DAsimulate
 
     type SimulateInfo
         hand::Hand
-      #  onset::Bool
         lock::Bool
         rev::Bool
         turn::Uint8
@@ -75,15 +74,12 @@ module DAsimulate
         if hand == PASS
             info.pass |= (0x1<<(info.turn-1))
             if info.pass==0x1f
-                #println("renew")
-                #info.onset = true
                 renew(info)
             else
                 info.turn = nextturn(info.pass,info.turn)
             end
             false
         else
-            #info.onset = false
             info.lock = info.lock|(suit(info.hand)==suit(hand))
             info.rev = info.rev$isrev(hand)
 
@@ -97,7 +93,7 @@ module DAsimulate
             else
                 cs = cards(hand)
                 #ジョーカーに対してのスペ3もしくは8切りの場合強制的に流れる
-                if (cs==S3&&cards(info.hand)==JOKER)|| cs&(da"s8 d8 h8 c8")!=0 #uint64(0xf)<<(4*5))!=0
+                if (cs==S3&&cards(info.hand)==JOKER)|| cs&(da"s8 d8 h8 c8")!=0
                     renew(info)
                     if t == 0u
                         info.turn = nextturn(info.pass,info.turn)

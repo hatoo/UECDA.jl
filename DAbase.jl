@@ -137,7 +137,7 @@ function count(x::Uint64)
 end
 
 macro memo()
-    arr = [popcnt32(uint32(x)) for x=0:typemax(Uint8)]
+    const arr = [popcnt32(uint32(x)) for x=0:typemax(Uint8)]
     :($arr)
 end
 count(x::Uint8) = (@memo)[x+1]

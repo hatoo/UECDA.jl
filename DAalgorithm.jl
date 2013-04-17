@@ -35,7 +35,7 @@ module DAalgorithm
 
     macro groupmemo()
                                   #mysuit locksuit num joker
-        memo = Array(Vector{Uint8},16,16,5,2)
+        const memo = Array(Vector{Uint8},16,16,5,2)
         for s = 0:15
             for lock = 0:15
                 for num = 0:4
@@ -61,7 +61,7 @@ module DAalgorithm
     end
 
     macro groupmemo_onset()
-        memo = Array(Vector{Uint8},16)
+        const memo = Array(Vector{Uint8},16)
         for s = 0:15
             arr = Uint[]
             if s == 0

@@ -5,7 +5,7 @@ module DAalgorithm
 
     cardsMask(range) = ((1u<<range.len*4)-1)<<(4*range.start)
 
-    validHands(cards::Cards) = [getGroup(cards),getStair(cards)]
+    validHands(cards::Cards) = append!(getGroup(cards),getStair(cards))
     validHands(cards::Cards,hand::Pass,lock::Bool,rev::Bool) = validHands(cards)
     function validHands(cards::Cards,hand::Group,lock::Bool,rev::Bool)
         if isjoker(hand)

@@ -28,6 +28,8 @@ function main()
         endflag = false
         while !endflag
             tefuda,ismyturn = ReceiveTefuda(game)
+            #dumpCards(tefuda)
+            #println(lasttable)
             #println("rest=",rest)
             #自分のターンの場合、手を提出する
             if ismyturn

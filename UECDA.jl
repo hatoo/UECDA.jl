@@ -16,7 +16,7 @@ global lastfield = Table()
 global lastsend  = Table()
 
 type GameConnection
-    socket::TcpSocket
+    socket::IO
     info::FieldInfo
 end
 
@@ -26,7 +26,7 @@ end
 
 #return playernum
 function entryToGame(myname,addr,port)
-    socket = connect(TcpSocket(),addr,port)[1]
+    socket = connect(addr,port)
     mynumber = SendProfile(socket,myname)
     info = FieldInfo()
     info.mynumber = mynumber
@@ -143,7 +143,7 @@ function SendProfile(socket,myname)
     end
     #println(table)
     SendTable(socket,table)
-    start_reading(socket) #これを入れるとなぜか動く
+    #start_reading(socket) #これを入れるとなぜか動く
     ReceiveInt(socket)
 end
 
@@ -172,30 +172,46 @@ function htonl(hostlong::Uint32)
     for i = 0:3
         ret += ((mask<<i*8)&hostlong)>>(i*8)<<((3-i)*8)
     end
-    ret
+    convert(Uint32,ret)
 end
 
 ntohl = htonl
 
 function SendTable(socket,table)
     global lastsend = copy(table)
-    netdata = transpose(map(htonl,convert(Array{Uint32,2},table)))
+    #netdata = (map(htonl,convert(Array{Uint32,2},table)))
+    netdata = vec(transpose(map(htonl,convert(Array{Uint32,2},table))))
     write(socket,netdata)
+    #for i=1:size(table)[1]
+    #	for j=1:size(table)[2]
+    #		write(socket,table[i,j])
+    #	end
+    #end
 end
 
 
 function ReceiveTable(socket)
     #start_reading(socket)
-    buf = zeros(Uint32,15,8)
-    read(socket,buf)
-    ret = transpose(map((x)->convert(Int32,x),map(ntohl,buf)))
-    global lasttable = copy(ret)
-    ret
+    #buf = zeros(Uint32,15,8)
+    #read(socket,buf)
+    #ret = transpose(map((x)->convert(Int32,x),map(ntohl,buf)))
+    #global lasttable = copy(ret)
+    #ret
+    buf = Table()
+    for i=1:size(buf)[1]
+    	for j=1:size(buf)[2]
+    		buf[i,j]=htonl(read(socket,Uint32))
+    	end
+    end
+    global lasttable = copy(buf)
+    buf
 end
 
 function ReceiveInt(socket)
-    buf = zeros(Uint32,1)
-    convert(Int32,ntohl(read(socket,buf)[1]))
+    #buf = zeros(Uint32,1)
+    #convert(Int32,ntohl(read(socket,buf)[1]))
+    i = read(socket,Uint32)
+    ntohl(i)
 end
 
 function TableToCards(table)

@@ -17,7 +17,7 @@ lowestcard(card::Cards)=count((~card) & (card-1))
 card(ord,suitnum)=1u<<(ord*4+suitnum)
 
 #TODO immutable
-type Group
+immutable Group
     suit::Uint8
     ord::Uint8 #0=革命時のジョーカー 1=3 3456... 通常時のジョーカー=14
     jokersuit::Uint8
@@ -25,7 +25,7 @@ type Group
     Group(s,o,j)=new(s,o,j)
 end
 const nojokerord=0xff
-type Stair
+immutable Stair
     suit::Uint8
     low::Uint8
     high::Uint8
@@ -34,7 +34,7 @@ type Stair
     Stair(s,l,h,j)=new(s,l,h,j)
 end
 
-type Pass
+immutable Pass
 end
 
 typealias Hand Union(Group,Stair,Pass)
@@ -148,7 +148,7 @@ dumpCards(cards)=dumpCards(STDOUT,cards)
 function dumpCards(io::IO,cards)
     strength = [3,4,5,6,7,8,9,10,11,12,13,1,2]
     for i=0:51
-        if (cards&(1u<<i)) !=0
+        if (cards&(1u<<(i+4))) !=0
             print(io,"SHDC"[i%4+1])
             print(io,strength[1+div(i,4)]," ")
         end
@@ -156,6 +156,7 @@ function dumpCards(io::IO,cards)
     if cards&JOKER != 0
         print(io,"JOKER ")
     end
+    print(io,"\n")
 end
 
 macro da_str(str)
@@ -165,7 +166,7 @@ macro da_str(str)
         num = isdigit(nstr[1])?[12,13,1,2,3,4,5,6,7,8,9,10,11][int(nstr)]:{"J"=>9,"Q"=>10,"K"=>11,"A"=>12}[nstr]
         u<<(num*4+s)
     end
-    for m in each_match(r"(JOKER)|([SHDC])(10|11|12|13|[0-9JQKA])",uppercase(str))
+    for m in eachmatch(r"(JOKER)|([SHDC])(10|11|12|13|[0-9JQKA])",uppercase(str))
         ret |= m.match=="JOKER"?JOKER:f(m.captures[2],m.captures[3])
     end
     ret

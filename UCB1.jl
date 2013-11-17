@@ -36,7 +36,7 @@ isless(x::ucb1record,y::ucb1record) = x.cache < y.cache
 
 function pick1(arr,n)
     map!((x)->ucb1tuned!(x,n),arr)
-    max(arr)
+    maximum(arr)
 end
 
 end

@@ -74,7 +74,7 @@ function montecarloP(finfo::FieldInfo,mycards,rest,num)
                         i,r = get()
                         if i>num break end
                         #rank = remote_call_fetch(p,f,r.data)
-                        ranks = remote_call_fetch(p,fN,r.data)
+                        ranks = remotecall_fetch(p,fN,r.data)
                         #println("consume playout at ",p," ",time())
                         #put(r,[0.98,0.88,0.5,0.11,0.017][rank])
                         #pushscore!(r,[0.98,0.88,0.5,0.11,0.017][rank])

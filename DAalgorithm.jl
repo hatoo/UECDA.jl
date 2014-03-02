@@ -173,12 +173,12 @@ module DAalgorithm
         ret = Hand[]
         const hasJoker = cards & JOKER != 0
         cards &= ~JOKER
-
-        for low = 0:14
+#ジョーカーを強さ14にして出す必要はない
+        for low = 1:13
             Jused = !hasJoker
             jo = nojokerord
             for suit = [0x1<<x for x=0:3]
-                for high = low:14
+                for high = low:13
                     const len = high-low+1
                     if (cards>>(4high))&suit == 0
                         if !Jused

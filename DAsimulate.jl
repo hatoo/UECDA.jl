@@ -65,7 +65,7 @@ module DAsimulate
     playercards(info)=info.tefuda[info.turn]
 
     function simulate!(info::SimulateInfo,hand::Hand)
-        function renew(i)
+        function renew(i::SimulateInfo)
             i.hand = PASS
             i.lock = false
             i.pass = i.goal
@@ -80,12 +80,15 @@ module DAsimulate
             end
             false
         else
-            info.lock = info.lock|(suit(info.hand)==suit(hand))
+            info.lock |= (suit(info.hand)==suit(hand))#info.lock|(suit(info.hand)==suit(hand))
             info.rev = info.rev$isrev(hand)
 
             t = info.tefuda[info.turn]$cards(hand)
             info.tefuda[info.turn]=t
-            info.goal |= (t==0u)*(0x1<<(info.turn-1))
+            if t==0u
+                info.goal |= (0x1<<(info.turn-1))
+            end
+            #info.goal |= (t==0u)*(0x1<<(info.turn-1))
             info.pass |= info.goal
             if info.goal==0x1f
                 #おわり

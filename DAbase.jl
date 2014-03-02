@@ -6,7 +6,7 @@ export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,qty,joker
 
 #0x10のビットからS3,H3,D3,C3,S4...
 #0x0~0xfは革命時のジョーカーを表現するのに使う
-Cards = Uint64
+const Cards = Uint64
 
 const u = convert(Cards,1)
 const JOKER = 1u <<(14*4)
@@ -137,7 +137,7 @@ function count(x)
 end
 
 macro memo()
-    const arr = [popcnt32(uint32(x)) for x=0:typemax(Uint8)]
+    const arr = [count_ones(x) for x=0:typemax(Uint8)]
     :($arr)
 end
 count(x::Uint8) = (@memo)[x+1]

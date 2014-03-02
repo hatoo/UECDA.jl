@@ -175,9 +175,9 @@ module DAalgorithm
         cards &= ~JOKER
 #ジョーカーを強さ14にして出す必要はない
         for low = 1:13
-            Jused = !hasJoker
-            jo = nojokerord
             for suit = [0x1<<x for x=0:3]
+                Jused = !hasJoker
+                jo = nojokerord
                 for high = low:13
                     const len = high-low+1
                     if (cards>>(4high))&suit == 0
@@ -240,9 +240,9 @@ module DAalgorithm
             for x = hands
                 c2 = cards(x)
                 t = c1 & c2
-                if t==0
+                if t==0u
                     push!(ret,x)
-                elseif c2&JOKER==0 && count(t)==1
+                elseif c2&JOKER==0 && count(c2)>1 && count(t)==1 
                     n = lowestcard(t)
                     f(g::Group)=Group(g.suit,g.ord,0x1<<(n%4))
                     f(s::Stair)=Stair(s.suit,s.low,s.high,div(n,4))

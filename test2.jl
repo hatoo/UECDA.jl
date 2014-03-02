@@ -1,34 +1,39 @@
-require("Daihinmin")
-
+#require("Daihinmin")
 using Daihinmin
+using Base.Test
 
-    macro groupmemo()
-    numMemo = Vector{Uint8}[[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
-                [1,2,4,8],
-                [3,5,9,6,10,12],
-                [14,13,11,7],
-                [15]]
-    memo = Vector{Vector{Uint8}}[Vector{Uint8}[filter((x)->x&s==x,numMemo[n+1]) for n = 0:4] for s = 0:0xf]
-    :($memo)
-    end
-
-function popcnt32(x)
-        x = x - (( x >> 1 ) & 0x55555555)
-        x = (x & 0x33333333) + (( x >> 2) & 0x33333333)
-        x = ( x + ( x >> 4 )) & 0x0F0F0F0F
-        x = x + ( x >> 8 )
-        x = x + ( x >> 16 )
-        x & 0x0000003F ###
-    end
-function cnt(x::Uint64)
-
-    popcnt32(x)+popcnt32(x>>32)
+function randtefuda()
+    rand(Cards)&(1u<<56-1)&(~15)|JOKER
 end
 
-macro memo()
-    arr = [popcnt32(uint32(x)) for x=0:typemax(Uint8)]
-    :($arr)
+function check(h1,h2)
+    (filter((h)->!in(h,h2),h1),filter((h)->!in(h,h1),h2))
 end
 
-f(x::Uint8) = (@memo)[x+1]
-g(x::Uint8) = popcnt32(uint32(x))
+function test()
+    tefuda = randtefuda()
+    hands = validHands(tefuda)
+    while tefuda != 0u
+        hh = validHands(tefuda)
+        h = hh[rand(1:end)]
+        #j = tefuda&JOKER
+        tefuda $= cards(h)
+        j = tefuda&JOKER
+        
+        h1 = validHands(tefuda)
+        hands = filterHands(hands,h,j!=0)
+
+        dh1,dhands = check(h1,hands)
+        if !isempty(dhands) || !isempty(dh1)
+            dumpCards(tefuda)
+            println(h)
+            println("h1")
+            println(length(h1))
+            println(dh1)
+            println("hands")
+            println(length(hands))
+            println(dhands)
+            break
+        end
+    end
+end

@@ -132,8 +132,8 @@ function popcnt32(x)
     x & 0x0000003F
 end
 
-function count(x::Uint64)
-    popcnt32(x)+popcnt32(x>>32)
+function count(x)
+    count_ones(x)
 end
 
 macro memo()
@@ -141,7 +141,6 @@ macro memo()
     :($arr)
 end
 count(x::Uint8) = (@memo)[x+1]
-count(x)=count(uint64(x))
 
 dumpCards(cards)=dumpCards(STDOUT,cards)
 

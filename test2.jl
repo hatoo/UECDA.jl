@@ -2,6 +2,7 @@
 using Daihinmin
 using Base.Test
 
+
 function randtefuda()
     rand(Cards)&(1u<<56-1)&(~15)|JOKER
 end
@@ -36,4 +37,59 @@ function test()
             break
         end
     end
+end
+
+macro groupmemo()
+                                  #mysuit locksuit num joker
+        const memo = Array(Vector{Uint8},16,16,5,2)
+        for s = 0:15
+            for lock = 0:15
+                for num = 0:4
+                    #no joker
+                    arr = Uint8[]
+                    for i=1:15
+                        if (i&lock==lock)&&(i&s==i)&&(count(i)==num||num==0)&&(s!=0)
+                            push!(arr,i)
+                        end
+                    end
+                    memo[s+1,lock+1,num+1,1] = arr
+                    arrj = Uint8[]
+                    for i=1:15
+                        if (i&lock==lock)&&((i&s==i)||(count(i)>1&&count(i&s$i)<=1))&&(count(i)==num||num==0)&&(s!=0)
+                            push!(arrj,i)
+                        end
+                    end
+                    memo[s+1,lock+1,num+1,2] = arrj
+                end
+            end
+        end
+        :($memo)
+    end
+function showcarray(h=STDOUT)
+    #16,16,5,2
+    print(h,"{")
+    for i1=1:16
+        print(h,"{")
+        for i2=1:16
+            print(h,"{")
+            for i3 = 1:5
+                print(h,"{")
+                for i4 = 1:2
+                    #print(h,(@groupmemo)[i1,i2,i3,i4],",");
+                    #print(h,(@groupmemo)[i1,i2,i3,i4],",");
+                    #show(h,(@groupmemo)[i1,i2,i3,i4])
+                    print(h,"{")
+                    for x = (@groupmemo)[i1,i2,i3,i4]
+                        print(h,x,",")
+                    end
+                    print(h,0)
+                    print(h,"},")
+                end
+                print(h,"},")
+            end
+            print(h,"},")
+        end
+        print(h,"},")
+    end
+    print(h,"}")
 end

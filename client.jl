@@ -38,14 +38,14 @@ function main()
                 #有効な手の中からランダムで提出する
                 hands = validHands(tefuda,game.info)
                 #hand  = length(hands)==0?PASS:hands[rand(1:end)]
-                hand  = length(hands)==0?PASS:montecarloP(game.info,tefuda,rest,3000)
+                hand  = length(hands)==0?PASS:montecarlo_uniform(game.info,tefuda,rest,12000)
                 #ret::Bool 受理したかどうか。能動的にパスした場合も不受理判定の模様
                 ret = SendHand(game,hand)
                 if !ret&&hand!=PASS
                     #デバッグ用 公式のJavaのサーバーは縛りがかかった状態でジョーカーを含んだグループを出すと不受理になる模様
                     #Cのサーバーは革命返しすると不受理になる模様
                     #現在詳しく調査中
-                    println(tefuda)
+                    dumpCards(tefuda)
                     println(hand)
                     println(game.info)
                     println("直前に送ったテーブル")

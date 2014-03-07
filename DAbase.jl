@@ -2,7 +2,7 @@ module DAbase
 
 import Base.show , Base.isequal , Base.isless
 
-export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,qty,jokerused,jokeras,cards,Group,Stair,suit,ord,numj,PASS,nojokerord,isrev,isjoker,@da_str,Pass,SingleJoker,lowestcard
+export Cards,card,u,JOKER,S3,Hand,count,FieldInfo,singlesuit,dumpCards,qty,jokerused,jokeras,cards,Group,Stair,Pass,suit,ord,numj,PASS,nojokerord,isrev,isjoker,@da_str,Pass,SingleJoker,lowestcard
 
 #0x10のビットからS3,H3,D3,C3,S4...
 #0x0~0xfは革命時のジョーカーを表現するのに使う

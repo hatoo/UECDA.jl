@@ -1,6 +1,5 @@
 using UCB1
 
-
 function test()
     arr = [ucb1record{Float64}(x) for x = 0:0.05:1.0]
     n = 0

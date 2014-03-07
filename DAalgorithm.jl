@@ -5,29 +5,33 @@ module DAalgorithm
 
     cardsMask(range) = ((1u<<range.len*4)-1)<<(4*range.start)
 
-    validHands(cards::Cards) = append!(getGroup(cards),getStair(cards))
-    validHands(cards::Cards,hand::Pass,lock::Bool,rev::Bool) = validHands(cards)
-    function validHands(cards::Cards,hand::Group,lock::Bool,rev::Bool)
+    function validHands(cards::Cards,ret::Vector{Hand}=Hand[])
+        getGroup(cards,ret)
+        getStair(cards,ret)
+    end
+    
+    validHands(cards::Cards,hand::Pass,lock::Bool,rev::Bool,ret::Vector{Hand}=Hand[]) = validHands(cards,ret)
+
+    function validHands(cards::Cards,hand::Group,lock::Bool,rev::Bool,ret::Vector{Hand}=Hand[])
         if isjoker(hand)
             if(cards&S3!=0)
-                [Group(1,1)]
-            else
-                []
+                push!(ret,Group(1,1))
             end
+            ret
         else
-            getGroup(cards,hand,lock,rev)
+            getGroup(cards,hand,lock,rev,ret)
         end
     end
 
-    function validHands(cards::Cards,hand::Stair,lock::Bool,rev::Bool)
-        getStair(cards,hand,lock,rev)
+    function validHands(cards::Cards,hand::Stair,lock::Bool,rev::Bool,ret::Vector{Hand}=Hand[])
+        getStair(cards,hand,lock,rev,ret)
     end
 
-    function validHands(cards::Cards,info::FieldInfo)
+    function validHands(cards::Cards,info::FieldInfo,ret::Vector{Hand}=Hand[])
         if info.onset
-            validHands(cards)
+            validHands(cards,ret)
         else
-            validHands(cards,info.hand,info.lock,info.rev)
+            validHands(cards,info.hand,info.lock,info.rev,ret)
         end
     end
 
@@ -78,8 +82,7 @@ module DAalgorithm
         :($memo)
     end
 
-    function getGroup(cards::Cards)
-        ret = Hand[]
+    function getGroup(cards::Cards,ret::Vector{Hand}=Hand[])
         const hasJoker = cards&JOKER != 0
         const memo = @groupmemo
         for ord = 1:13
@@ -92,8 +95,7 @@ module DAalgorithm
         ret
     end
 
-    function getGroup(cards::Cards,hand::Group,lock::Bool,rev::Bool)
-        ret = Hand[]
+    function getGroup(cards::Cards,hand::Group,lock::Bool,rev::Bool,ret::Vector{Hand}=Hand[])
         const hasJoker = cards&JOKER == JOKER
         const ordrange = rev?(1:hand.ord-1):((hand.ord+1):13)
         const num = qty(hand)
@@ -120,8 +122,7 @@ module DAalgorithm
         ret
     end
 
-    function getGroup(cards::Cards,num,locksuit::Uint8,ordrange)
-        ret = Hand[]
+    function getGroup(cards::Cards,num,locksuit::Uint8,ordrange,ret::Vector{Hand}=Hand[])
         const hasJoker = cards&JOKER != 0
         const isExist = cardsMask(ordrange)&cards != 0
 
@@ -142,12 +143,10 @@ module DAalgorithm
                 push!(ret,Group(ss,ord,ss$(mysuit&ss)))
             end
         end
-
         ret
     end
 
-    function getGroup_onset(cards::Cards)
-        ret = Hand[]
+    function getGroup_onset(cards::Cards,ret::Vector{Hand}=Hand[])
         memo = @groupmemo_onset
         const hasJoker = cards & JOKER != 0
         if hasJoker
@@ -169,8 +168,7 @@ module DAalgorithm
         ret
     end
 
-    function getStair(cards::Cards)
-        ret = Hand[]
+    function getStair(cards::Cards,ret::Vector{Hand}=Hand[])
         const hasJoker = cards & JOKER != 0
         cards &= ~JOKER
 #ジョーカーを強さ14にして出す必要はない
@@ -197,8 +195,7 @@ module DAalgorithm
         ret
     end
 
-    function getStair(cards::Cards,hand::Stair,lock::Bool,rev::Bool)
-        ret = Stair[]
+    function getStair(cards::Cards,hand::Stair,lock::Bool,rev::Bool,ret::Vector{Hand}=Hand[])
         const hasJoker = cards & JOKER != 0
         cards &= ~JOKER
         const ordrange = rev?(0:hand.low-1):(hand.high+1:14)
@@ -229,8 +226,9 @@ module DAalgorithm
         ret
     end
 
-    function onsetHands(cards::Cards)
-        [getGroup_onset(cards),getStair(cards)]
+    function onsetHands(cards::Cards,ret::Vector{Hand}=Hand[])
+        getGroup_onset(cards,ret)
+        getStair(cards,ret)
     end
 
     function filterHands(hands::Vector{Hand},h::Hand,hasJoker::Bool)

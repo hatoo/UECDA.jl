@@ -114,8 +114,8 @@ module DAsimulate
         end
     end
 
-    function validHands(cards::Cards,info::SimulateInfo)
-        validHands(cards,info.hand,info.lock,info.rev)
+    function validHands(cards::Cards,info::SimulateInfo,ret::Vector{Hand}=Hand[])
+        validHands(cards,info.hand,info.lock,info.rev,ret)
     end
 
     function randtefuda()

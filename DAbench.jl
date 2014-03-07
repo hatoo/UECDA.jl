@@ -33,11 +33,11 @@ function testFieldInfo()
     info
 end
 
-function randmycards()
+function randmycards(num=11)
     yama = shuffle!([0:52])
     t = 0u
     p = 1
-    for i=1:11
+    for i=1:num
         t |= 1u<<yama[i]<<4
     end
     (t,(JOKER<<1-1)&(~t)&(~(0xfu)))
@@ -48,18 +48,14 @@ bench3()=bench3(5000)
 function bench3(n)
     info = testFieldInfo()
     mycards,rest = randmycards()
-    @time begin
-    montecarlo(info,mycards,rest,n)
-end
+    @elapsed montecarlo(info,mycards,rest,n)
 end
 
-bench4()=bench4(5000)
-function bench4(n)
+bench4()=bench4(5000,4)
+function bench4(n,N)
     info = testFieldInfo()
     mycards,rest = randmycards()
-    @time begin
-    montecarloP(info,mycards,rest,n)
-end
+    @elapsed montecarloP(info,mycards,rest,n,N)
 end
 
 bench5()=bench5(5000)
@@ -112,3 +108,48 @@ function test(n)
     info
 end
 
+bench7()=bench7(5000)
+function bench7(n)
+    info = testFieldInfo()
+    mycards,rest = randmycards()
+    @elapsed montecarloP_alpha(info,mycards,rest,n)
+end
+
+bench8()=bench8(5000)
+function bench8(n)
+    ret = Hand[]
+    sizehint(ret,256)
+    algo1=0.0
+    algo2=0.0
+    for i=1:n
+        tefuda = randtefuda()
+        algo1+=@elapsed for k=1:100 validHands(tefuda) end
+        algo2+=@elapsed for k=1:100 
+            resize!(ret,0)
+            validHands(tefuda,ret)
+        end
+    end
+    println("algo1:",algo1," ","algo2:",algo2)
+end
+
+bench9()=bench9(5000)
+function bench9(n)
+    info = testFieldInfo()
+    mycards,rest = randmycards()
+    dumpCards(mycards)
+    @time montecarlo_uniform(info,mycards,rest,n)
+end
+
+function bench10()
+    info = testFieldInfo()
+    mycards,rest = randmycards()
+    dumpCards(mycards)
+    @show montecarlo_uniform(info,mycards,rest,100)
+    @show montecarlo_uniform(info,mycards,rest,500)
+    @show montecarlo_uniform(info,mycards,rest,1000)
+    @show montecarlo_uniform(info,mycards,rest,2000)
+    @show montecarlo_uniform(info,mycards,rest,4000)
+    @show montecarlo_uniform(info,mycards,rest,8000)
+    @show montecarlo_uniform(info,mycards,rest,10000)
+    @show montecarlo_uniform(info,mycards,rest,20000)
+end

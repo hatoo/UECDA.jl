@@ -4,7 +4,7 @@ using DAbase
 using DAalgorithm
 using UCB1
 
-export montecarlo,montecarloP,montecarloP_alpha,montecarlo_uniform
+export montecarlo,montecarloP,montecarloP_alpha,montecarlo_uniform,exchange_montecarlo_uniform
 
 function pickrandom(info,reserved::Vector{Hand}=Hand[])
     hs = validHands(playercards(info),info,reserved)
@@ -144,6 +144,9 @@ function fromChand(bin::Uint64)
     end
 end
 
+#da = dlopen("libDA")
+#mu = dlsym(da,:montecarlo_uniform_foreign)
+#em = dlsym(da,:exchange_montecarlo_uniform_foreign)
 #uint64_t montecarlo_uniform_foreign(uint64_t mytefuda,uint64_t rest,int32_t mypos,uint64_t ontable_bin
 #            ,int32_t *tefudanums,uint8_t passflag,uint8_t goalflag,bool lock,bool rev,int32_t playoutnum);
 function montecarlo_uniform(info::FieldInfo,mycards,rest,num)
@@ -157,10 +160,28 @@ function montecarlo_uniform(info::FieldInfo,mycards,rest,num)
     playoutnum = int32(num)
     lock = uint8(info.lock)
     rev = uint8(info.rev)
-    bin = ccall((:montecarlo_uniform_foreign,"libDA"),Uint64, (Uint64,Uint64,Int32,Uint64,Ptr{Int32},Uint8,Uint8,Uint8,Uint8,Int32)
+    bin = ccall((:montecarlo_uniform_foreign,:libDA),Uint64, (Uint64,Uint64,Int32,Uint64,Ptr{Int32},Uint8,Uint8,Uint8,Uint8,Int32)
         ,tefuda,restcards,mypos,ontable_bin,tefudanums,passflag,goalflag,lock,rev,playoutnum)
+#    bin = ccall(mu,Uint64, (Uint64,Uint64,Int32,Uint64,Ptr{Int32},Uint8,Uint8,Uint8,Uint8,Int32)
+#        ,tefuda,restcards,mypos,ontable_bin,tefudanums,passflag,goalflag,lock,rev,playoutnum)
     h = fromChand(bin)
     h
+end
+
+function exchange_montecarlo_uniform(mycards,exnum,num)
+    if num==0
+        uint64(0)
+    else
+        #  extern "C" uint64_t exchange_montecarlo_uniform_foreign(uint64_t tefuda,int32_t myrank,int32_t playoutnum);
+        tefuda = uint64(mycards)
+        myrank = int32(exnum==2?0:1)
+        playoutnum = int32(num)
+        ret= ccall((:exchange_montecarlo_uniform_foreign,:libDA),Uint64,(Uint64,Int32,Int32)
+            ,tefuda,myrank,playoutnum)
+#        ret = ccall(em,Uint64,(Uint64,Int32,Int32)
+#            ,tefuda,myrank,playoutnum)
+        uint64(ret)
+    end
 end
 
 end

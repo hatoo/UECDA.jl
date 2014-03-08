@@ -22,7 +22,13 @@ function main()
                 ex |= 1u<<x
                 x+=1
             end
+            #dumpCards(cards)
+            #println(num)
+            #ex = exchange_montecarlo_uniform(cards,num,2000)
+            #dumpCards(ex)
+            @show cards
             SendExchangeCards(game,ex)
+            #@show exchange_montecarlo_uniform(cards,num,2000)#ccall((:testfunc,:libDA),Int32,())
         end
         #println(cards," ",num)
         endflag = false
@@ -38,7 +44,7 @@ function main()
                 #有効な手の中からランダムで提出する
                 hands = validHands(tefuda,game.info)
                 #hand  = length(hands)==0?PASS:hands[rand(1:end)]
-                hand  = length(hands)==0?PASS:montecarlo_uniform(game.info,tefuda,rest,12000)
+                hand  = length(hands)==0?PASS:montecarlo_uniform(game.info,tefuda,rest,16000)
                 #ret::Bool 受理したかどうか。能動的にパスした場合も不受理判定の模様
                 ret = SendHand(game,hand)
                 if !ret&&hand!=PASS

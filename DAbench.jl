@@ -125,11 +125,11 @@ function bench8(n)
         tefuda = randtefuda()
         algo1+=@elapsed for k=1:100 validHands(tefuda) end
         algo2+=@elapsed for k=1:100 
-            resize!(ret,0)
-            validHands(tefuda,ret)
-        end
+        resize!(ret,0)
+        validHands(tefuda,ret)
     end
-    println("algo1:",algo1," ","algo2:",algo2)
+end
+println("algo1:",algo1," ","algo2:",algo2)
 end
 
 bench9()=bench9(5000)
@@ -141,8 +141,26 @@ function bench9(n)
 end
 
 function bench10()
-    info = testFieldInfo()
-    mycards,rest = randmycards()
+    tnum = rand(5:10)
+
+    info = FieldInfo()
+    info.mypos = 1
+    info.turn = 1
+    info.seat = [0:4]
+    info.rest = [tnum,tnum,tnum,tnum,tnum]
+    info.rank = [0:4]
+    info
+
+    function cs(num,ynum)
+        yama = shuffle!([0:52])[1:ynum]
+        t = 0u
+        p = 1
+        for i=1:num
+            t |= 1u<<yama[i]<<4
+        end
+        (t,(JOKER<<1-1)&(~t)&(~(0xfu)))
+    end
+    mycards,rest = cs(tnum,tnum*5)
     dumpCards(mycards)
     @show montecarlo_uniform(info,mycards,rest,100)
     @show montecarlo_uniform(info,mycards,rest,500)
@@ -152,4 +170,16 @@ function bench10()
     @show montecarlo_uniform(info,mycards,rest,8000)
     @show montecarlo_uniform(info,mycards,rest,10000)
     @show montecarlo_uniform(info,mycards,rest,20000)
+    @show montecarlo_uniform(info,mycards,rest,80000)
+end
+
+function bench11()
+    mycards,rest = randmycards()
+    dumpCards(mycards)
+    dumpCards(exchange_montecarlo_uniform(mycards,2,4000));
+    dumpCards(exchange_montecarlo_uniform(mycards,2,8000));
+    dumpCards(exchange_montecarlo_uniform(mycards,2,16000));
+    dumpCards(exchange_montecarlo_uniform(mycards,1,4000));
+    dumpCards(exchange_montecarlo_uniform(mycards,1,8000));
+    dumpCards(exchange_montecarlo_uniform(mycards,1,16000));
 end
